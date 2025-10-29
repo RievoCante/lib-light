@@ -228,27 +228,10 @@ flutter build ios --release
 - No real-time data updates
 - No push notifications
 
-## Future Enhancements (Phase 2+)
-
-- [ ] REST API integration
-- [ ] Real-time WebSocket data updates
-- [ ] Actual order execution
-- [ ] Biometric authentication
-- [ ] Push notifications
-- [ ] Charts and technical indicators
-- [ ] Watchlists
-- [ ] Stock alerts
-- [ ] Social features
-
 ## License
 
 [Add license information]
 
-## Contact
-
-[Add contact information]
-
 ---
 
-**Version:** 1.0.0+1
-**Last Updated:** October 2025
+**Last Updated:** 29 October 2025

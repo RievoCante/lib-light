@@ -1,3 +1,8 @@
+---
+description: it is helpful when you want to know the overview of the project
+alwaysApply: false
+---
+
 ### 1. Overview & Tech Stack
 
 - **Product:** Mobile stock trading app for the Thai market (Phase 1: UI with mock data).
