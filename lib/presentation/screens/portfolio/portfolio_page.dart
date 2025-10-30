@@ -124,9 +124,9 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
                       children: [
                         Text(l10n.allPort, style: AppTextStyles.bodyMedium),
                         const SizedBox(width: 8),
-                        const Icon(
+                        Icon(
                           Icons.arrow_drop_down,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).iconTheme.color,
                           size: 20,
                         ),
                       ],
@@ -236,9 +236,9 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.arrow_drop_down,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).iconTheme.color,
                         size: 20,
                       ),
                     ],
@@ -247,15 +247,23 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
+                      foregroundColor: AppColors.primaryBlue,
                       side: const BorderSide(color: AppColors.primaryBlue),
                       elevation: 0,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.share, size: 16),
+                        const Icon(
+                          Icons.share,
+                          size: 16,
+                          color: AppColors.primaryBlue,
+                        ),
                         const SizedBox(width: 4),
-                        Text(l10n.shareAll),
+                        Text(
+                          l10n.shareAll,
+                          style: const TextStyle(color: AppColors.primaryBlue),
+                        ),
                       ],
                     ),
                   ),
@@ -299,9 +307,7 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
       flex: flex,
       child: Text(
         text,
-        style: AppTextStyles.bodySmall.copyWith(
-          color: color ?? AppColors.textPrimary,
-        ),
+        style: AppTextStyles.bodySmall.copyWith(color: color),
         textAlign: TextAlign.center,
       ),
     );
