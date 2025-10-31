@@ -110,6 +110,8 @@ class AppLocalizations {
   String get volumePlaceholder => translate('volume_placeholder');
   String get pricePlaceholder => translate('price_placeholder');
   String get pinPlaceholder => translate('pin_placeholder');
+  String get testing => translate('testing');
+  String get register => translate('register');
 
   bool get isThaiLanguage => locale.languageCode == 'th';
 }

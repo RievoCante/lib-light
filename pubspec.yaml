@@ -63,6 +63,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^4.2.0
 
+  # WebView
+  webview_flutter: ^4.4.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

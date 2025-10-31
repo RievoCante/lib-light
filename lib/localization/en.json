@@ -74,5 +74,7 @@
   "thai_notice": "If you have problems entering the Thai stock trading system via the app, please contact 02-028-7441 ext 1",
   "volume_placeholder": "Volume ...",
   "price_placeholder": "Price ...",
-  "pin_placeholder": "PIN ..."
+  "pin_placeholder": "PIN ...",
+  "testing": "Testing",
+  "register": "Register"
 }

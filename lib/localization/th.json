@@ -74,5 +74,7 @@
   "thai_notice": "หากมีปัญหาในการส่งคำสั่งซื้อขายกรุณาติดต่อ 02-028-7441 ถด 1",
   "volume_placeholder": "จำนวน ...",
   "price_placeholder": "ราคา ...",
-  "pin_placeholder": "PIN ..."
+  "pin_placeholder": "PIN ...",
+  "testing": "การทดสอบ",
+  "register": "ลงทะเบียน"
 }

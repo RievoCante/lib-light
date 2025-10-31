@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../localization/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../webview/webview_page.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -162,6 +163,44 @@ class SettingsPage extends ConsumerWidget {
             ),
             onTap: () {
               _showLogoutDialog(context, ref, l10n);
+            },
+          ),
+
+          const SizedBox(height: 24),
+
+          // Testing section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              l10n.testing,
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Register (Testing)
+          _SettingTile(
+            icon: Icons.app_registration,
+            title: l10n.register,
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+            onTap: () {
+              Navigator.push(
+                // open a new screen
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WebViewPage(
+                    url: 'https://ndid.liberator.co.th/openaccount/authen',
+                    title: l10n.register,
+                  ),
+                ),
+              );
             },
           ),
         ],
