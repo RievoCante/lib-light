@@ -7,6 +7,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/notification.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/common/profile_avatar.dart';
+import 'notification_detail_page.dart';
 
 class NotificationPage extends ConsumerWidget {
   const NotificationPage({super.key});
@@ -67,9 +68,18 @@ class NotificationPage extends ConsumerWidget {
                 return _NotificationTile(
                   notification: notification,
                   onTap: () {
+                    // Mark as read
                     ref
                         .read(notificationProvider.notifier)
                         .markAsRead(notification.id);
+                    // Navigate to detail page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            NotificationDetailPage(notification: notification),
+                      ),
+                    );
                   },
                 );
               },
