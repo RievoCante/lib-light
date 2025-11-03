@@ -7,12 +7,14 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../localization/app_localizations.dart';
 import '../../providers/portfolio_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/common/market_header.dart';
 import '../../widgets/common/notification_bell.dart';
 import '../../widgets/common/profile_avatar.dart';
 import '../../widgets/common/tab_toggle.dart';
 import '../../widgets/common/empty_state.dart';
 import '../../widgets/common/account_footer.dart';
+import '../notification/notification_page.dart';
 
 class PortfolioPage extends ConsumerStatefulWidget {
   const PortfolioPage({super.key});
@@ -44,7 +46,24 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
                       title: 'Portfolio',
                     ),
                   ),
-                  const NotificationBell(),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final unreadCount = ref.watch(
+                        unreadNotificationCountProvider,
+                      );
+                      return NotificationBell(
+                        hasNotifications: unreadCount > 0,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationPage(),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                   const SizedBox(width: 16),
                   ProfileAvatar(onTap: () {}),
                 ],

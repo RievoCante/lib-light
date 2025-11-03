@@ -62,6 +62,14 @@ class Formatters {
     }
   }
 
+  // Time formatting (HH:MM:SS)
+  static String formatTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second';
+  }
+
   // Time ago formatting
   static String formatTimeAgo(DateTime date, {bool isThaiLanguage = false}) {
     final now = DateTime.now();

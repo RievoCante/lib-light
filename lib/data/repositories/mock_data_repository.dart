@@ -7,6 +7,7 @@ import '../models/order_book.dart';
 import '../models/portfolio.dart';
 import '../models/calendar_event.dart';
 import '../models/article.dart';
+import '../models/notification.dart';
 
 class MockDataRepository {
   MockDataRepository._();
@@ -462,6 +463,53 @@ class MockDataRepository {
       'ADVANC',
       'TRUE',
       'INTUCH',
+    ];
+  }
+
+  // Mock Notifications
+  static List<AppNotification> getMockNotifications() {
+    final now = DateTime.now();
+    return [
+      AppNotification(
+        id: '1',
+        title: 'แจ้งเตือน มีการเปลี่ยนชื่อหุ้นในระบบเทรด',
+        message: 'การเปลี่ยนแปลงชื่อย่อหลักทรัพย์ของ 24CS',
+        timestamp: DateTime(now.year, now.month, now.day, 6, 0, 21),
+        isRead: false,
+        icon: '📄',
+      ),
+      AppNotification(
+        id: '2',
+        title: 'Market Update',
+        message: 'SET Index reached 1,320 points',
+        timestamp: now.subtract(const Duration(hours: 2)),
+        isRead: true,
+        icon: '📈',
+      ),
+      AppNotification(
+        id: '3',
+        title: 'Dividend Announcement',
+        message: 'ADVANC declared dividend payment',
+        timestamp: now.subtract(const Duration(days: 1)),
+        isRead: true,
+        icon: '💰',
+      ),
+      AppNotification(
+        id: '4',
+        title: 'Trading Alert',
+        message: 'PTT price reached your target level',
+        timestamp: now.subtract(const Duration(days: 2)),
+        isRead: true,
+        icon: '🔔',
+      ),
+      AppNotification(
+        id: '5',
+        title: 'Account Notice',
+        message: 'Your monthly statement is ready',
+        timestamp: now.subtract(const Duration(days: 5)),
+        isRead: true,
+        icon: '📊',
+      ),
     ];
   }
 }

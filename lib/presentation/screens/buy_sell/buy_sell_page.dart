@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/stock_list_item.dart';
 import '../../../data/repositories/mock_data_repository.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/common/market_header.dart';
 import '../../widgets/common/profile_avatar.dart';
 import '../../widgets/common/notification_bell.dart';
 import '../../widgets/stock/stock_list_tile.dart';
+import '../notification/notification_page.dart';
 import 'stock_detail_page.dart';
 import 'stock_search_page.dart';
 
@@ -46,7 +48,22 @@ class _BuySellPageState extends ConsumerState<BuySellPage>
               icon: const Icon(Icons.search),
               onPressed: () => _openSearch(),
             ),
-            const NotificationBell(),
+            Consumer(
+              builder: (context, ref, child) {
+                final unreadCount = ref.watch(unreadNotificationCountProvider);
+                return NotificationBell(
+                  hasNotifications: unreadCount > 0,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationPage(),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
             const SizedBox(width: 8),
             ProfileAvatar(onTap: () {}),
           ],

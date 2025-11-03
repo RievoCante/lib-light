@@ -7,9 +7,11 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../localization/app_localizations.dart';
 import '../../providers/calendar_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../widgets/common/market_header.dart';
 import '../../widgets/common/notification_bell.dart';
 import '../../widgets/common/profile_avatar.dart';
+import '../notification/notification_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -45,7 +47,24 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: Row(
                 children: [
                   Expanded(child: const MarketHeader(showLogo: true)),
-                  const NotificationBell(),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final unreadCount = ref.watch(
+                        unreadNotificationCountProvider,
+                      );
+                      return NotificationBell(
+                        hasNotifications: unreadCount > 0,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationPage(),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                   const SizedBox(width: 16),
                   ProfileAvatar(
                     onTap: () {
