@@ -13,12 +13,18 @@ A modern Flutter-based stock trading application designed for the Thai market, f
 
 ### 💰 Buy & Sell
 
-- Market toggle (Thai Stock, US Stock, Mutual Fund)
-- Buy/Sell trading panel with order entry form
-- Stock search with autocomplete
-- Real-time stock price display with High/Low/Ceiling/Floor
-- 5-level and 10-level order book display
-- Bid/Ask visualization with color-coded prices
+- Beginner-friendly interface inspired by Binance Lite
+- Three market tabs (Thai Stock, US Stock, Mutual Fund)
+- Clean stock list view with symbol, full name, short name
+- Real-time price display with percentage change indicators
+- Stock search functionality
+- Simplified stock detail page with:
+  - Large price display and 24h change
+  - Simple price chart visualization
+  - Current holdings information
+  - Expandable "About" section with More/Less toggle
+  - Quick Buy/Sell action buttons
+  - Resource links (website, whitepaper)
 
 ### 📊 Portfolio
 
@@ -42,9 +48,18 @@ A modern Flutter-based stock trading application designed for the Thai market, f
 - Dark theme toggle
 - Order entry settings
 - E-Service access
+- Register button (opens webview for account registration)
 - Contact us
 - Privacy & Policy
 - Sign out with confirmation
+
+### 🔔 Notifications
+
+- Bell icon in header with unread count badge
+- Notification list with icons and timestamps
+- Unread/read status indicators
+- Notification detail page with full message content
+- Time-based formatting (Today, Yesterday, Date)
 
 ## Tech Stack
 
@@ -56,6 +71,7 @@ A modern Flutter-based stock trading application designed for the Thai market, f
   - FlutterSecureStorage 9.2.4 (credentials)
 - **Calendar:** TableCalendar 3.2.0
 - **Localization:** flutter_localizations, intl 0.20.2
+- **Webview:** webview_flutter 4.10.0
 - **UI/UX:**
   - FlutterAnimate 4.5.2
   - CachedNetworkImage 3.4.1
@@ -124,11 +140,13 @@ lib/
 The app currently uses mock data for all features:
 
 - User session: Account `70426672(C)`
+- Login credentials: ID `2525314`, Password `Welcome00`
 - Market data: SET index with realistic values
-- Stock quotes: Thai stock symbols (A, NVDR, PTT, KBANK, etc.)
-- Order book: 5-10 levels of bid/ask data
+- Stock quotes: Thai stock symbols (PTT, KBANK, AOT, CPALL, etc.)
+- Stock list: 10 Thai stocks with real symbols and mock prices
 - Calendar events: October 2025 with dividend dates
 - News articles: Thai financial news with timestamps
+- Notifications: 5 sample notifications (stock changes, market updates, alerts)
 
 ## Localization
 
@@ -141,18 +159,20 @@ Switch languages in Settings → Language
 
 ## Theme
 
-- **Dark Theme** (Default): Dark navy background with blue accents
-- **Light Theme**: Used for Settings page, white background
+- **Light Theme** (Default): White background with dark text for optimal readability
+- **Dark Theme**: Dark navy background with blue accents
 
-Toggle dark theme in Settings → Dark Theme
+Toggle between themes in Settings → Dark Theme
 
 ## Authentication
 
 Mock authentication is currently enabled:
 
-- Auto-login after splash screen
+- Login page with username/password form
+- Demo credentials: ID `2525314`, Password `Welcome00`
 - "Remember Me" functionality
 - Stored credentials in secure storage
+- Input validation and error messages
 - Logout clears all stored data
 
 ## State Management
@@ -166,6 +186,7 @@ The app uses Riverpod for state management with the following providers:
 - `portfolioProvider` - Portfolio holdings
 - `calendarProvider` - Calendar events
 - `newsProvider` - News articles
+- `notificationProvider` - Notification list and unread count
 
 ## Key Features Implementation
 
@@ -223,10 +244,10 @@ flutter build ios --release
 
 - Mock data only (no real API integration)
 - Portrait orientation only
-- Light theme only (except Settings page uses light theme even in dark mode)
 - No order execution functionality
 - No real-time data updates
-- No push notifications
+- No push notifications (in-app notifications only)
+- US Stock and Mutual Fund tabs use same mock data as Thai Stock
 
 ## License
 
@@ -234,4 +255,4 @@ flutter build ios --release
 
 ---
 
-**Last Updated:** 29 October 2025
+**Last Updated:** 4 November 2025
