@@ -227,14 +227,33 @@ flutter analyze
 
 ## Building for Production
 
-### Android
+### Quick Build (Recommended)
+
+Use the provided build scripts in the `scripts/` folder:
+
+```bash
+# Build Android APK
+./scripts/build-android.sh
+
+# Build iOS IPA (macOS only)
+./scripts/build-ios.sh
+
+# Distribute Android via Firebase
+./scripts/distribute-android.sh
+```
+
+See [scripts/README.md](scripts/README.md) for detailed documentation.
+
+### Manual Build
+
+#### Android
 
 ```bash
 flutter build apk --release
 flutter build appbundle --release
 ```
 
-### iOS
+#### iOS
 
 ```bash
 flutter build ios --release
