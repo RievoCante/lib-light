@@ -13,6 +13,7 @@ import 'presentation/screens/buy_sell/buy_sell_page.dart';
 import 'presentation/screens/portfolio/portfolio_page.dart';
 import 'presentation/screens/content/content_page.dart';
 import 'presentation/screens/settings/settings_page.dart';
+import 'presentation/screens/support/support_chat_page.dart';
 import 'presentation/widgets/navigation/bottom_nav_bar.dart';
 
 class LiberatorApp extends ConsumerStatefulWidget {
@@ -50,6 +51,10 @@ class _LiberatorAppState extends ConsumerState<LiberatorApp> {
       },
       routes: [
         GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+        GoRoute(
+          path: '/support-chat',
+          builder: (context, state) => const SupportChatPage(),
+        ),
         ShellRoute(
           builder: (context, state, child) {
             return MainScaffold(child: child);

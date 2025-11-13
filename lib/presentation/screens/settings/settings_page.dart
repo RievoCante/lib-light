@@ -1,6 +1,7 @@
 // Settings (You) page with light theme
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../localization/app_localizations.dart';
@@ -134,7 +135,7 @@ class SettingsPage extends ConsumerWidget {
               color: Theme.of(context).textTheme.bodySmall?.color,
             ),
             onTap: () {
-              // Navigate to contact us
+              context.push('/support-chat');
             },
           ),
 

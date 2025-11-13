@@ -76,5 +76,11 @@
   "price_placeholder": "Price ...",
   "pin_placeholder": "PIN ...",
   "testing": "Testing",
-  "register": "Register"
+  "register": "Register",
+  "support_chat": "Customer Support",
+  "view_chat_history": "View Chat History",
+  "recent_orders": "Recent Orders",
+  "search_or_ask": "Search or ask question",
+  "solved": "Solved",
+  "unsolved": "Unsolved"
 }

@@ -112,6 +112,12 @@ class AppLocalizations {
   String get pinPlaceholder => translate('pin_placeholder');
   String get testing => translate('testing');
   String get register => translate('register');
+  String get supportChat => translate('support_chat');
+  String get viewChatHistory => translate('view_chat_history');
+  String get recentOrders => translate('recent_orders');
+  String get searchOrAsk => translate('search_or_ask');
+  String get solved => translate('solved');
+  String get unsolved => translate('unsolved');
 
   bool get isThaiLanguage => locale.languageCode == 'th';
 }

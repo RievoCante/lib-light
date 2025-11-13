@@ -76,5 +76,11 @@
   "price_placeholder": "ราคา ...",
   "pin_placeholder": "PIN ...",
   "testing": "การทดสอบ",
-  "register": "ลงทะเบียน"
+  "register": "ลงทะเบียน",
+  "support_chat": "ฝ่ายสนับสนุนลูกค้า",
+  "view_chat_history": "ดูประวัติการสนทนา",
+  "recent_orders": "คำสั่งซื้อล่าสุด",
+  "search_or_ask": "ค้นหาหรือถามคำถาม",
+  "solved": "แก้ไขแล้ว",
+  "unsolved": "ยังไม่แก้ไข"
 }
