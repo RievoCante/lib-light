@@ -68,6 +68,9 @@ dependencies:
   webview_flutter_android: ^3.0.0
   image_picker: ^1.0.0
 
+  # Markdown
+  flutter_markdown: ^0.6.18
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -95,6 +98,8 @@ flutter:
     - assets/icons/
     - lib/localization/en.json
     - lib/localization/th.json
+    - assets/privacy_policy_en.md
+    - assets/privacy_policy_th.md
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

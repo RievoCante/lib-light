@@ -1,9 +1,24 @@
-// Privacy policy display page
+// Privacy policy display page with markdown support
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_text_styles.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
+
+  Future<String> _loadPrivacyPolicy(BuildContext context) async {
+    // Get current language code
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final filename = 'assets/privacy_policy_$languageCode.md';
+
+    try {
+      // Try to load language-specific file
+      return await rootBundle.loadString(filename);
+    } catch (e) {
+      // Fallback to English if language file doesn't exist
+      return await rootBundle.loadString('assets/privacy_policy_en.md');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,93 +30,65 @@ class PrivacyPolicyPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Privacy Policy',
-              style: AppTextStyles.h2,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Last updated: November 14, 2025',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Information Collection Section
-            _buildSection(
-              context,
-              'Information Collection',
-              'We collect information that you provide directly to us, including when you create an account, make transactions, or communicate with us. This may include your name, email address, phone number, identification documents, and financial information.',
-            ),
-            
-            // How We Use Your Information
-            _buildSection(
-              context,
-              'How We Use Your Information',
-              'We use the information we collect to provide, maintain, and improve our services, process transactions, send you technical notices and support messages, respond to your comments and questions, and protect against fraudulent or illegal activity.',
-            ),
-            
-            // Data Security
-            _buildSection(
-              context,
-              'Data Security',
-              'We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure.',
-            ),
-            
-            // Information Sharing
-            _buildSection(
-              context,
-              'Information Sharing',
-              'We do not share your personal information with third parties except as described in this policy. We may share information with service providers who perform services on our behalf, or when required by law.',
-            ),
-            
-            // Your Rights
-            _buildSection(
-              context,
-              'Your Rights',
-              'You have the right to access, correct, or delete your personal information. You may also object to or restrict certain processing of your data. To exercise these rights, please contact us using the information below.',
-            ),
-            
-            // Contact Us
-            _buildSection(
-              context,
-              'Contact Us',
-              'If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:\n\nEmail: support@liberator.co.th\nPhone: +66 (0) 2-123-4567\nAddress: Bangkok, Thailand',
-            ),
-            
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
+      body: FutureBuilder<String>(
+        future: _loadPrivacyPolicy(context),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-  Widget _buildSection(BuildContext context, String title, String content) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.h3,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            content,
-            style: AppTextStyles.bodyMedium.copyWith(
-              height: 1.6,
-            ),
-          ),
-        ],
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Error loading privacy policy: ${snapshot.error}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return Center(
+              child: Text(
+                'No privacy policy found',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            );
+          }
+
+          return Markdown(
+            data: snapshot.data!,
+            padding: const EdgeInsets.all(16),
+            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                .copyWith(
+                  h1: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  h2: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                  h3: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                  p: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(height: 1.6),
+                  listBullet: Theme.of(context).textTheme.bodyMedium,
+                  blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                  strong: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+          );
+        },
       ),
     );
   }
 }
-
