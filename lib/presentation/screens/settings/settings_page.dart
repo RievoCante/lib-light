@@ -8,6 +8,7 @@ import '../../../localization/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../webview/webview_page.dart';
+import 'privacy_policy_page.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
@@ -149,7 +150,12 @@ class SettingsPage extends ConsumerWidget {
               color: Theme.of(context).textTheme.bodySmall?.color,
             ),
             onTap: () {
-              // Navigate to privacy policy
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrivacyPolicyPage(),
+                ),
+              );
             },
           ),
 
