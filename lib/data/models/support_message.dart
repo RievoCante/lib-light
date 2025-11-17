@@ -79,27 +79,10 @@ enum MessageType { text, faq }
 class FaqItem {
   final String id;
   final String question;
-  final String answer;
-  final bool isExpanded;
 
-  const FaqItem({
-    required this.id,
-    required this.question,
-    required this.answer,
-    this.isExpanded = false,
-  });
+  const FaqItem({required this.id, required this.question});
 
-  FaqItem copyWith({
-    String? id,
-    String? question,
-    String? answer,
-    bool? isExpanded,
-  }) {
-    return FaqItem(
-      id: id ?? this.id,
-      question: question ?? this.question,
-      answer: answer ?? this.answer,
-      isExpanded: isExpanded ?? this.isExpanded,
-    );
+  FaqItem copyWith({String? id, String? question}) {
+    return FaqItem(id: id ?? this.id, question: question ?? this.question);
   }
 }

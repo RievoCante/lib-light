@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../data/models/support_message.dart';
 import '../../../data/repositories/mock_chat_repository.dart';
 import '../../../localization/app_localizations.dart';
 import '../../../presentation/providers/auth_provider.dart';
@@ -21,15 +20,8 @@ class SupportChatPage extends ConsumerStatefulWidget {
 class _SupportChatPageState extends ConsumerState<SupportChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  List<FaqItem> _faqItems = [];
   bool _showFaq = false;
   int _previousMessageCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _faqItems = MockChatRepository.getFaqItems();
-  }
 
   @override
   void dispose() {
@@ -38,17 +30,47 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
     super.dispose();
   }
 
-  void _toggleFaqItem(int index) {
-    setState(() {
-      _faqItems[index] = _faqItems[index].copyWith(
-        isExpanded: !_faqItems[index].isExpanded,
-      );
-    });
-  }
-
   void _toggleFaqView() {
     setState(() {
       _showFaq = !_showFaq;
+    });
+  }
+
+  Future<void> _sendFaqQuestion(String question) async {
+    final authState = ref.read(authProvider);
+    final userId = authState.value?.userId;
+    final chatIdAsync = ref.read(chatIdProvider);
+
+    if (userId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to send messages')),
+        );
+      }
+      return;
+    }
+
+    chatIdAsync.whenData((chatId) async {
+      final repository = ref.read(firestoreChatRepositoryProvider);
+      try {
+        await repository.sendMessage(
+          chatId: chatId,
+          content: question,
+          userId: userId,
+          isFromUser: true,
+        );
+        // Hide FAQ view after sending
+        setState(() {
+          _showFaq = false;
+        });
+        _scrollToBottom();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+        }
+      }
     });
   }
 
@@ -225,14 +247,12 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
                         // FAQ Items (only show when _showFaq is true)
                         if (_showFaq) ...[
                           const SizedBox(height: 16),
-                          ..._faqItems.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final faqItem = entry.value;
-                            return FaqItemWidget(
+                          ...MockChatRepository.getFaqItems(l10n).map(
+                            (faqItem) => FaqItemWidget(
                               faqItem: faqItem,
-                              onTap: () => _toggleFaqItem(index),
-                            );
-                          }),
+                              onTap: () => _sendFaqQuestion(faqItem.question),
+                            ),
+                          ),
                         ],
 
                         const SizedBox(height: 16),

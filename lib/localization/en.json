@@ -82,5 +82,14 @@
   "recent_orders": "Recent Orders",
   "search_or_ask": "Search or ask question",
   "solved": "Solved",
-  "unsolved": "Unsolved"
+  "unsolved": "Unsolved",
+  "faq_questions": [
+    "How to lift P2P suspension",
+    "How to find the Restrictions Removal Center",
+    "How do I know the result of the lift suspension appeal",
+    "If your appeal is not accepted/rejected",
+    "If your appeal is accepted/completed",
+    "If there is no P2P suspension on you, but you can't post ads",
+    "EEA (Europe) residents pay attention to the MiCA Stablecoin Rules Implementation"
+  ]
 }

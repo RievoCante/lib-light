@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 class AppLocalizations {
   final Locale locale;
   late Map<String, String> _localizedStrings;
+  late Map<String, dynamic> _localizedValues;
 
   AppLocalizations(this.locale);
 
@@ -22,6 +23,10 @@ class AppLocalizations {
     );
     final Map<String, dynamic> jsonMap = json.decode(jsonString);
 
+    // Store raw values for arrays
+    _localizedValues = jsonMap;
+
+    // Store string values for regular translations
     _localizedStrings = jsonMap.map((key, value) {
       return MapEntry(key, value.toString());
     });
@@ -118,6 +123,15 @@ class AppLocalizations {
   String get searchOrAsk => translate('search_or_ask');
   String get solved => translate('solved');
   String get unsolved => translate('unsolved');
+
+  // Get FAQ questions as list
+  List<String> get faqQuestions {
+    final value = _localizedValues['faq_questions'];
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
 
   bool get isThaiLanguage => locale.languageCode == 'th';
 }
