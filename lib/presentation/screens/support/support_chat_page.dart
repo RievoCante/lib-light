@@ -34,6 +34,9 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
     setState(() {
       _showFaq = !_showFaq;
     });
+    if (_showFaq) {
+      _scrollToBottom();
+    }
   }
 
   Future<void> _sendFaqQuestion(String question) async {
