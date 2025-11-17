@@ -1,10 +1,13 @@
-// Support chat page with FAQ and mock messages
+// Support chat page with Firestore real-time chat
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/support_message.dart';
 import '../../../data/repositories/mock_chat_repository.dart';
 import '../../../localization/app_localizations.dart';
+import '../../../presentation/providers/auth_provider.dart';
+import '../../../presentation/providers/chat_provider.dart';
 import '../../widgets/chat/message_bubble.dart';
 import '../../widgets/chat/faq_item_widget.dart';
 
@@ -19,14 +22,13 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   List<FaqItem> _faqItems = [];
-  List<SupportMessage> _messages = [];
   bool _showFaq = false;
+  int _previousMessageCount = 0;
 
   @override
   void initState() {
     super.initState();
     _faqItems = MockChatRepository.getFaqItems();
-    _messages = [MockChatRepository.getWelcomeMessage()];
   }
 
   @override
@@ -50,24 +52,46 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
     });
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        SupportMessage(
-          id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-          content: text,
-          isFromUser: true,
-          timestamp: DateTime.now(),
-          type: MessageType.text,
-        ),
-      );
-      _messageController.clear();
-    });
+    final authState = ref.read(authProvider);
+    final userId = authState.value?.userId;
+    final chatIdAsync = ref.read(chatIdProvider);
 
-    // Auto-scroll to bottom after sending
+    if (userId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in to send messages')),
+        );
+      }
+      return;
+    }
+
+    chatIdAsync.whenData((chatId) async {
+      final repository = ref.read(firestoreChatRepositoryProvider);
+      try {
+        await repository.sendMessage(
+          chatId: chatId,
+          content: text,
+          userId: userId,
+          isFromUser: true,
+        );
+        _messageController.clear();
+        // Scroll to bottom after sending
+        _scrollToBottom();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+        }
+      }
+    });
+  }
+
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -83,6 +107,42 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final messagesAsync = ref.watch(chatMessagesProvider);
+    final chatIdAsync = ref.watch(chatIdProvider);
+
+    debugPrint(
+      '[SupportChatPage] messagesAsync.isLoading: ${messagesAsync.isLoading}',
+    );
+    debugPrint(
+      '[SupportChatPage] messagesAsync.hasError: ${messagesAsync.hasError}',
+    );
+    debugPrint(
+      '[SupportChatPage] messagesAsync.hasValue: ${messagesAsync.hasValue}',
+    );
+    debugPrint(
+      '[SupportChatPage] chatIdAsync.isLoading: ${chatIdAsync.isLoading}',
+    );
+    debugPrint(
+      '[SupportChatPage] chatIdAsync.hasError: ${chatIdAsync.hasError}',
+    );
+    debugPrint('[SupportChatPage] chatIdAsync.error: ${chatIdAsync.error}');
+
+    // Auto-scroll when new messages arrive
+    ref.listen(chatMessagesProvider, (previous, next) {
+      debugPrint('[SupportChatPage] Message stream updated');
+      next.whenData((messages) {
+        debugPrint('[SupportChatPage] Received ${messages.length} messages');
+        final currentCount = messages.length;
+        if (currentCount > _previousMessageCount) {
+          _previousMessageCount = currentCount;
+          _scrollToBottom();
+        } else if (_previousMessageCount == 0 && currentCount > 0) {
+          // Initialize count on first load
+          _previousMessageCount = currentCount;
+          _scrollToBottom();
+        }
+      });
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -121,48 +181,158 @@ class _SupportChatPageState extends ConsumerState<SupportChatPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              children: [
-                // View Chat History button
-                Center(
-                  child: TextButton.icon(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.access_time,
-                      size: 16,
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                    ),
-                    label: Text(
-                      l10n.viewChatHistory,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color,
+            child: chatIdAsync.when(
+              data: (_) {
+                // Chat ID is ready, show messages
+                return messagesAsync.when(
+                  data: (messages) {
+                    debugPrint(
+                      '[SupportChatPage] Rendering ${messages.length} messages',
+                    );
+                    return ListView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      children: [
+                        // View Chat History button
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.access_time,
+                              size: 16,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
+                            ),
+                            label: Text(
+                              l10n.viewChatHistory,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.color,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Messages from Firestore
+                        ...messages.map(
+                          (message) => MessageBubble(message: message),
+                        ),
+
+                        // FAQ Items (only show when _showFaq is true)
+                        if (_showFaq) ...[
+                          const SizedBox(height: 16),
+                          ..._faqItems.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final faqItem = entry.value;
+                            return FaqItemWidget(
+                              faqItem: faqItem,
+                              onTap: () => _toggleFaqItem(index),
+                            );
+                          }),
+                        ],
+
+                        const SizedBox(height: 16),
+                      ],
+                    );
+                  },
+                  loading: () {
+                    debugPrint('[SupportChatPage] Messages are loading...');
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                  error: (error, stack) {
+                    debugPrint(
+                      '[SupportChatPage] Error loading messages: $error',
+                    );
+                    debugPrint('[SupportChatPage] Stack trace: $stack');
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error loading messages',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              error.toString(),
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                debugPrint('[SupportChatPage] Retrying...');
+                                // ignore: unused_result
+                                ref.refresh(chatMessagesProvider);
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
                       ),
+                    );
+                  },
+                );
+              },
+              loading: () {
+                debugPrint('[SupportChatPage] Chat ID is loading...');
+                return const Center(child: CircularProgressIndicator());
+              },
+              error: (error, stack) {
+                debugPrint('[SupportChatPage] Error getting chat ID: $error');
+                debugPrint('[SupportChatPage] Stack trace: $stack');
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error initializing chat',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          error.toString(),
+                          style: Theme.of(context).textTheme.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            debugPrint('[SupportChatPage] Retrying chat ID...');
+                            // ignore: unused_result
+                            ref.refresh(chatIdProvider);
+                            // ignore: unused_result
+                            ref.refresh(chatMessagesProvider);
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Messages
-                ..._messages.map((message) => MessageBubble(message: message)),
-
-                // FAQ Items (only show when _showFaq is true)
-                if (_showFaq) ...[
-                  const SizedBox(height: 16),
-                  ..._faqItems.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final faqItem = entry.value;
-                    return FaqItemWidget(
-                      faqItem: faqItem,
-                      onTap: () => _toggleFaqItem(index),
-                    );
-                  }),
-                ],
-
-                const SizedBox(height: 16),
-              ],
+                );
+              },
             ),
           ),
 
