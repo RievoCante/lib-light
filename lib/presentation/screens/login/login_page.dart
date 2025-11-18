@@ -114,9 +114,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       // Format phone number
-      final formattedPhone = phoneNumber.startsWith('+')
-          ? phoneNumber
-          : '+66${phoneNumber.replaceAll(RegExp(r'[^0-9]'), '')}';
+      // Remove all non-digits and leading 0 if present
+      final digitsOnly = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+      final cleanedNumber = digitsOnly.startsWith('0')
+          ? digitsOnly.substring(1)
+          : digitsOnly;
+      final formattedPhone = '+66$cleanedNumber';
 
       final completer = Completer<String?>();
 
@@ -193,26 +196,160 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final phoneController = TextEditingController();
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Enter Phone Number'),
-        content: TextField(
-          controller: phoneController,
-          keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(
-            hintText: '+66XXXXXXXXX or 0XXXXXXXXX',
-            prefixText: '+66 ',
+      barrierColor: Colors.black54,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Text(
+                'Enter Phone Number',
+                style: AppTextStyles.h2.copyWith(color: AppColors.textBlack),
+              ),
+              const SizedBox(height: 8),
+              // Subtitle
+              Text(
+                'We\'ll send you a verification code',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textGrey,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Phone input field
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(width: 1, color: AppColors.inputBorder),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.inputShadow,
+                      blurRadius: 2,
+                      offset: Offset(0, 1),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Country code prefix
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            width: 1,
+                            color: AppColors.inputBorder,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        '+66',
+                        style: AppTextStyles.inputText.copyWith(
+                          color: AppColors.textBlack,
+                        ),
+                      ),
+                    ),
+                    // Phone number input
+                    Expanded(
+                      child: TextField(
+                        controller: phoneController,
+                        keyboardType: TextInputType.phone,
+                        style: AppTextStyles.inputText.copyWith(
+                          color: AppColors.textBlack,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Enter phone number',
+                          hintStyle: AppTextStyles.inputText.copyWith(
+                            color: AppColors.textGrey,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Helper text
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Text(
+                  'Example: 812345678 or 0812345678',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textGrey,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Action buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: Text(
+                      'Cancel',
+                      style: AppTextStyles.buttonSmall.copyWith(
+                        color: AppColors.textGrey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      final phoneNumber = phoneController.text.trim();
+                      if (phoneNumber.isNotEmpty) {
+                        Navigator.pop(context, phoneNumber);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.loginPrimaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Continue',
+                      style: AppTextStyles.buttonSmall.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, phoneController.text),
-            child: const Text('Continue'),
-          ),
-        ],
       ),
     );
   }
