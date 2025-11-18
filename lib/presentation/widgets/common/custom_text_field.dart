@@ -51,6 +51,7 @@ class CustomTextField extends StatelessWidget {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (prefixIcon != null) ...[prefixIcon!, const SizedBox(width: 12)],
           Expanded(
@@ -83,11 +84,9 @@ class CustomTextField extends StatelessWidget {
             ),
           ),
           if (suffixIcon != null)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: suffixIcon!,
-              ),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Center(child: suffixIcon!),
             ),
         ],
       ),

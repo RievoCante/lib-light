@@ -54,5 +54,17 @@
 	<!-- Photo library add permission (iOS 14+) -->
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need permission to save photos for verification</string>
+	<!-- Google Sign-In URL Scheme -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.550509553877-e8gols2ef203pgldpvga8dgc121qc28f</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

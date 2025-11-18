@@ -74,6 +74,9 @@ dependencies:
   # Markdown
   flutter_markdown: ^0.6.18
 
+  # Country Flags
+  country_flags: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

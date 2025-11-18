@@ -515,17 +515,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
           ),
           const SizedBox(width: 6),
-          TextButton(
-            onPressed: () => context.push('/signup'),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              'Sign Up',
-              style: AppTextStyles.linkText.copyWith(
-                color: AppColors.loginPrimaryBlue,
+          InkWell(
+            onTap: () {
+              context.go('/signup');
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                'Sign Up',
+                style: AppTextStyles.linkText.copyWith(
+                  color: AppColors.loginPrimaryBlue,
+                ),
               ),
             ),
           ),

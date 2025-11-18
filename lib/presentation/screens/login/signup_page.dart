@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:country_flags/country_flags.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/exceptions/auth_exceptions.dart';
@@ -22,10 +23,14 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _dateController = TextEditingController();
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   String? _errorMessage;
   bool _isLoading = false;
+  String _selectedCountryCode = '+66';
+  String _selectedCountryIso = 'TH'; // ISO 3166-1 alpha-2 country code
 
   @override
   void dispose() {
@@ -34,8 +39,65 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _dateController.dispose();
     super.dispose();
+  }
+
+  void _showCountryCodePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Select Country',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  _buildCountryOption('TH', '+66', 'Thailand'),
+                  _buildCountryOption('US', '+1', 'United States'),
+                  _buildCountryOption('GB', '+44', 'United Kingdom'),
+                  _buildCountryOption('JE', '+44', 'Jersey'),
+                  _buildCountryOption('SG', '+65', 'Singapore'),
+                  _buildCountryOption('MY', '+60', 'Malaysia'),
+                  _buildCountryOption('ID', '+62', 'Indonesia'),
+                  _buildCountryOption('PH', '+63', 'Philippines'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCountryOption(String isoCode, String code, String name) {
+    final isSelected = _selectedCountryIso == isoCode;
+    return ListTile(
+      leading: CountryFlag.fromCountryCode(isoCode, height: 24, width: 32),
+      title: Text(name),
+      trailing: Text(code, style: const TextStyle(fontWeight: FontWeight.w500)),
+      selected: isSelected,
+      onTap: () {
+        Navigator.pop(context);
+        if (mounted) {
+          setState(() {
+            _selectedCountryCode = code;
+            _selectedCountryIso = isoCode;
+          });
+        }
+      },
+    );
   }
 
   Future<void> _selectDate() async {
@@ -73,12 +135,21 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     try {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
       final firstName = _firstNameController.text.trim();
       final lastName = _lastNameController.text.trim();
 
       if (email.isEmpty || password.isEmpty) {
         setState(() {
           _errorMessage = 'Please enter email and password';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      if (password != confirmPassword) {
+        setState(() {
+          _errorMessage = 'Passwords do not match';
           _isLoading = false;
         });
         return;
@@ -137,6 +208,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 24),
                     _buildHeader(),
@@ -160,7 +232,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       children: [
         IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textBlack),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/login'),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
         ),
         const SizedBox(height: 12),
         Text(
@@ -213,9 +287,11 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               suffixIcon: IconButton(
                 icon: const Icon(
                   Icons.calendar_today,
-                  size: 16,
+                  size: 20,
                   color: AppColors.textGrey,
                 ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: _selectDate,
               ),
             ),
@@ -223,13 +299,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             // Phone Number
             Container(
               width: double.infinity,
-              height: 46,
-              padding: const EdgeInsets.only(
-                left: 14,
-                right: 14,
-                top: 12,
-                bottom: 12,
-              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
@@ -244,31 +313,54 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 ],
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                        right: BorderSide(
-                          width: 1,
-                          color: AppColors.inputBorder,
+                  // Flag icon and dropdown section
+                  InkWell(
+                    onTap: _showCountryCodePicker,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          right: BorderSide(
+                            width: 1,
+                            color: AppColors.inputBorder,
+                          ),
                         ),
                       ),
-                    ),
-                    child: const Text(
-                      '+66',
-                      style: TextStyle(
-                        color: AppColors.textBlack,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Flag icon
+                          CountryFlag.fromCountryCode(
+                            _selectedCountryIso,
+                            height: 20,
+                            width: 30,
+                          ),
+                          const SizedBox(width: 8),
+                          // Country code text
+                          Text(
+                            _selectedCountryCode,
+                            style: AppTextStyles.inputText.copyWith(
+                              color: AppColors.textBlack,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          // Dropdown chevron
+                          const Icon(
+                            Icons.keyboard_arrow_down,
+                            size: 16,
+                            color: AppColors.textGrey,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  // Phone number input
                   Expanded(
                     child: TextField(
                       controller: _phoneController,
@@ -282,7 +374,15 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                           color: AppColors.textGrey,
                         ),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        filled: false,
+                        fillColor: Colors.transparent,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         isDense: true,
                       ),
                     ),
@@ -299,12 +399,37 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  size: 16,
+                  size: 20,
                   color: AppColors.textGrey,
                 ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () {
                   setState(() {
                     _obscurePassword = !_obscurePassword;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Confirm Password
+            CustomTextField(
+              controller: _confirmPasswordController,
+              hintText: 'Confirm Password',
+              obscureText: _obscureConfirmPassword,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscureConfirmPassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                  size: 20,
+                  color: AppColors.textGrey,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  setState(() {
+                    _obscureConfirmPassword = !_obscureConfirmPassword;
                   });
                 },
               ),
@@ -365,17 +490,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             ),
           ),
           const SizedBox(width: 6),
-          TextButton(
-            onPressed: () => context.pop(),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: Text(
-              'Log in',
-              style: AppTextStyles.linkText.copyWith(
-                color: AppColors.loginPrimaryBlue,
+          InkWell(
+            onTap: () {
+              context.go('/login');
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Text(
+                'Log in',
+                style: AppTextStyles.linkText.copyWith(
+                  color: AppColors.loginPrimaryBlue,
+                ),
               ),
             ),
           ),

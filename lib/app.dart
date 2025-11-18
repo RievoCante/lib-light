@@ -39,12 +39,15 @@ class _LiberatorAppState extends ConsumerState<LiberatorApp> {
       redirect: (context, state) {
         final authState = ref.read(authProvider);
         final isLoggedIn = authState.value != null;
+        final isAuthPage =
+            state.matchedLocation == '/login' ||
+            state.matchedLocation == '/signup';
 
-        if (!isLoggedIn && state.matchedLocation != '/login') {
+        if (!isLoggedIn && !isAuthPage) {
           return '/login';
         }
 
-        if (isLoggedIn && state.matchedLocation == '/login') {
+        if (isLoggedIn && isAuthPage) {
           return '/home';
         }
 
