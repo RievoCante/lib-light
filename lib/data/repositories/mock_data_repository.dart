@@ -12,12 +12,12 @@ import '../models/notification.dart';
 class MockDataRepository {
   MockDataRepository._();
 
-  // Mock User
+  // Mock User (for testing/development only)
   static User getMockUser() {
     return const User(
-      userId: '70426672',
+      uid: '70426672',
       accountNumber: '70426672(C)',
-      isLoggedIn: true,
+      authProvider: 'email',
       rememberMe: true,
     );
   }

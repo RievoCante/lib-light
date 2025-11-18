@@ -47,4 +47,16 @@ class AppColors {
   static const Color statusGreen = Color(0xFF10B981);
   static const Color statusRed = Color(0xFFEF4444);
   static const Color statusYellow = Color(0xFFF59E0B);
+
+  // Login/Signup UI Colors
+  static const Color loginBackground = Color(0xFFEDF1F3);
+  static const Color inputBorder = Color(0xFFEDF1F3);
+  static const Color inputShadow = Color(0x3DE4E5E7);
+  static const Color textBlack = Color(0xFF1A1C1E);
+  static const Color textGrey = Color(0xFF6C7278);
+  static const Color loginPrimaryBlue = Color(0xFF4D81E7);
+  static const Color dividerGrey = Color(0xFFD9DDDF);
+  static const Color socialButtonBorder = Color(0xFFEFF0F6);
+  static const Color gradientBlueStart = Color(0xFF375DFB);
+  static const Color gradientBlueEnd = Color(0x7A253EA7);
 }

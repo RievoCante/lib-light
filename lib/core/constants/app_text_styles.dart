@@ -80,4 +80,40 @@ class AppTextStyles {
     fontSize: 10,
     fontWeight: FontWeight.normal,
   );
+
+  // Login/Signup Text Styles
+  static const TextStyle loginTitle = TextStyle(
+    fontSize: 36,
+    fontWeight: FontWeight.w700,
+    height: 1.30,
+    letterSpacing: -0.64,
+  );
+
+  static const TextStyle loginSubtitle = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    height: 1.40,
+    letterSpacing: -0.12,
+  );
+
+  static const TextStyle inputText = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.40,
+    letterSpacing: -0.14,
+  );
+
+  static const TextStyle linkText = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    height: 1.40,
+    letterSpacing: -0.12,
+  );
+
+  static const TextStyle socialButtonText = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 1.40,
+    letterSpacing: -0.14,
+  );
 }

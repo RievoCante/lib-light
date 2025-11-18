@@ -2,50 +2,86 @@
 import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
-  final String userId;
-  final String accountNumber;
-  final bool isLoggedIn;
+  final String uid; // Firebase Auth UID (replaces userId)
+  final String? email;
+  final String? displayName;
+  final String? photoUrl;
+  final String? phoneNumber;
+  final String? accountNumber; // From Firestore user profile
+  final String authProvider; // 'email', 'google', 'phone'
   final bool rememberMe;
 
   const User({
-    required this.userId,
-    required this.accountNumber,
-    this.isLoggedIn = false,
+    required this.uid,
+    this.email,
+    this.displayName,
+    this.photoUrl,
+    this.phoneNumber,
+    this.accountNumber,
+    required this.authProvider,
     this.rememberMe = false,
   });
 
+  // Backward compatibility: userId maps to uid
+  String get userId => uid;
+
   User copyWith({
-    String? userId,
+    String? uid,
+    String? email,
+    String? displayName,
+    String? photoUrl,
+    String? phoneNumber,
     String? accountNumber,
-    bool? isLoggedIn,
+    String? authProvider,
     bool? rememberMe,
   }) {
     return User(
-      userId: userId ?? this.userId,
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      photoUrl: photoUrl ?? this.photoUrl,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
       accountNumber: accountNumber ?? this.accountNumber,
-      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      authProvider: authProvider ?? this.authProvider,
       rememberMe: rememberMe ?? this.rememberMe,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
+      'uid': uid,
+      'email': email,
+      'displayName': displayName,
+      'photoUrl': photoUrl,
+      'phoneNumber': phoneNumber,
       'accountNumber': accountNumber,
-      'isLoggedIn': isLoggedIn,
+      'authProvider': authProvider,
       'rememberMe': rememberMe,
     };
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      userId: json['userId'] as String,
-      accountNumber: json['accountNumber'] as String,
-      isLoggedIn: json['isLoggedIn'] as bool? ?? false,
+      uid: json['uid'] as String? ?? json['userId'] as String? ?? '',
+      email: json['email'] as String?,
+      displayName: json['displayName'] as String?,
+      photoUrl: json['photoUrl'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      accountNumber: json['accountNumber'] as String?,
+      authProvider: json['authProvider'] as String? ?? 'email',
       rememberMe: json['rememberMe'] as bool? ?? false,
     );
   }
 
   @override
-  List<Object?> get props => [userId, accountNumber, isLoggedIn, rememberMe];
+  List<Object?> get props => [
+    uid,
+    email,
+    displayName,
+    photoUrl,
+    phoneNumber,
+    accountNumber,
+    authProvider,
+    rememberMe,
+  ];
 }

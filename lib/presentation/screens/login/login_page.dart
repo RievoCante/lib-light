@@ -1,11 +1,15 @@
-// Login page
+// Login page with modern UI design
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/exceptions/auth_exceptions.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/common/custom_text_field.dart';
+import '../../widgets/common/gradient_button.dart';
+import '../../widgets/common/social_login_button.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -15,7 +19,7 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _obscurePassword = true;
@@ -24,291 +28,508 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleEmailLogin() async {
     setState(() {
       _errorMessage = null;
       _isLoading = true;
     });
 
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text;
+    try {
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
 
-    // Mock authentication - check against credentials
-    if (username == '2525314' && password == 'Welcome00') {
-      await ref.read(authProvider.notifier).login(rememberMe: _rememberMe);
+      if (email.isEmpty || password.isEmpty) {
+        setState(() {
+          _errorMessage = 'Please enter email and password';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      await ref
+          .read(authProvider.notifier)
+          .loginWithEmail(
+            email: email,
+            password: password,
+            rememberMe: _rememberMe,
+          );
+
       if (mounted) {
         context.go('/home');
       }
-    } else {
+    } on AuthException catch (e) {
       setState(() {
-        _errorMessage = 'Invalid username or password';
+        _errorMessage = e.message;
         _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'An error occurred. Please try again.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    try {
+      await ref
+          .read(authProvider.notifier)
+          .loginWithGoogle(rememberMe: _rememberMe);
+
+      if (mounted) {
+        context.go('/home');
+      }
+    } on AuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Google sign in failed. Please try again.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handlePhoneLogin() async {
+    // Show phone input dialog
+    final phoneNumber = await _showPhoneInputDialog();
+    if (phoneNumber == null || phoneNumber.isEmpty) return;
+
+    setState(() {
+      _errorMessage = null;
+      _isLoading = true;
+    });
+
+    try {
+      // Format phone number
+      final formattedPhone = phoneNumber.startsWith('+')
+          ? phoneNumber
+          : '+66${phoneNumber.replaceAll(RegExp(r'[^0-9]'), '')}';
+
+      final completer = Completer<String?>();
+
+      await ref
+          .read(authProvider.notifier)
+          .loginWithPhoneNumber(
+            phoneNumber: formattedPhone,
+            rememberMe: _rememberMe,
+            codeSent: (vid) {
+              if (!completer.isCompleted) {
+                completer.complete(vid);
+              }
+            },
+            verificationFailed: (error) {
+              setState(() {
+                _errorMessage = error;
+                _isLoading = false;
+              });
+              if (!completer.isCompleted) {
+                completer.completeError(error);
+              }
+            },
+          );
+
+      // Wait for verification ID
+      try {
+        final vid = await completer.future.timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            throw Exception('Timeout waiting for verification code');
+          },
+        );
+
+        if (vid != null && mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+
+          // Show SMS code input dialog
+          final smsCode = await _showSmsCodeDialog();
+          if (smsCode != null && smsCode.isNotEmpty && mounted) {
+            setState(() {
+              _isLoading = true;
+            });
+
+            await ref
+                .read(authProvider.notifier)
+                .verifyPhoneNumber(verificationId: vid, smsCode: smsCode);
+
+            if (mounted) {
+              context.go('/home');
+            }
+          } else {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        }
+      } catch (e) {
+        setState(() {
+          _errorMessage = 'Failed to send verification code. Please try again.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Phone authentication failed. Please try again.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<String?> _showPhoneInputDialog() async {
+    final phoneController = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enter Phone Number'),
+        content: TextField(
+          controller: phoneController,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(
+            hintText: '+66XXXXXXXXX or 0XXXXXXXXX',
+            prefixText: '+66 ',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, phoneController.text),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _showSmsCodeDialog() async {
+    final codeController = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enter Verification Code'),
+        content: TextField(
+          controller: codeController,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          decoration: const InputDecoration(hintText: '6-digit code'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, codeController.text),
+            child: const Text('Verify'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your email address';
+      });
+      return;
+    }
+
+    try {
+      await ref.read(authProvider.notifier).sendPasswordResetEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Password reset email sent. Please check your inbox.',
+            ),
+          ),
+        );
+      }
+    } on AuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxContentWidth = screenWidth > 375 ? 375.0 : screenWidth;
+    final horizontalPadding = screenWidth > 375
+        ? (screenWidth - 375) / 2
+        : 24.0;
+
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: AppColors.loginBackground,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppDimensions.spacing32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 60),
-
-              // Logo (Blue bars)
-              Center(child: _buildLogo()),
-
-              const SizedBox(height: AppDimensions.spacing24),
-
-              // App Name
-              Center(
-                child: Text(
-                  'Liberator',
-                  style: AppTextStyles.h1.copyWith(
-                    color: AppColors.textLight,
-                    fontSize: 32,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: AppDimensions.spacing8),
-
-              // Tagline
-              Center(
-                child: Text(
-                  'Stock Trading Platform',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 48),
-
-              // Username field
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username / ID',
-                  hintText: 'Enter your ID',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusMedium,
-                    ),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-
-              const SizedBox(height: AppDimensions.spacing16),
-
-              // Password field
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter your password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusMedium,
-                    ),
-                  ),
-                ),
-                onSubmitted: (_) => _handleLogin(),
-              ),
-
-              const SizedBox(height: AppDimensions.spacing12),
-
-              // Remember Me checkbox
-              Row(
-                children: [
-                  Checkbox(
-                    value: _rememberMe,
-                    onChanged: (value) {
-                      setState(() {
-                        _rememberMe = value ?? false;
-                      });
-                    },
-                    activeColor: AppColors.primaryBlue,
-                  ),
-                  Text(
-                    'Remember Me',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textLight,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Error message
-              if (_errorMessage != null) ...[
-                const SizedBox(height: AppDimensions.spacing12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.negative.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusMedium,
-                    ),
-                    border: Border.all(color: AppColors.negative),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        color: AppColors.negative,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _errorMessage!,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.negative,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: AppDimensions.spacing24),
-
-              // Login button
-              ElevatedButton(
-                onPressed: _isLoading ? null : _handleLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusMedium,
-                    ),
-                  ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        'Sign In',
-                        style: AppTextStyles.button.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Demo credentials hint
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.radiusMedium,
-                  ),
-                  border: Border.all(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                  ),
-                ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxContentWidth),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          color: AppColors.primaryBlue,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Demo Account',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.primaryBlue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'ID: 2525314',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textLight,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                    Text(
-                      'Password: Welcome00',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textLight,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
+                    const SizedBox(height: 24),
+                    _buildContent(),
+                    _buildFooter(),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLogo() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLogoBar(60, Colors.blue.shade300),
-        const SizedBox(width: 8),
-        _buildLogoBar(75, Colors.blue.shade400),
-        const SizedBox(width: 8),
-        _buildLogoBar(90, Colors.blue.shade500),
-        const SizedBox(width: 8),
-        _buildLogoBar(105, AppColors.primaryBlue),
+        const SizedBox(height: 8),
+        // Logo
+        Center(
+          child: Image.asset(
+            'assets/images/liberator_logo.png',
+            height: 120,
+            width: 240,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback if image not found
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+        const SizedBox(height: 30),
+        // Title and Subtitle
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sign in to your Account',
+              style: AppTextStyles.loginTitle.copyWith(
+                color: AppColors.textBlack,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Enter your email and password to log in',
+              style: AppTextStyles.loginSubtitle.copyWith(
+                color: AppColors.textGrey,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        // Form Fields
+        Column(
+          children: [
+            // Email Field
+            CustomTextField(
+              controller: _emailController,
+              hintText: 'Email',
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            // Password Field
+            CustomTextField(
+              controller: _passwordController,
+              hintText: 'Password',
+              obscureText: _obscurePassword,
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  size: 20,
+                  color: AppColors.textGrey,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Remember Me and Forgot Password
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged: (value) {
+                        setState(() {
+                          _rememberMe = value ?? false;
+                        });
+                      },
+                      activeColor: AppColors.textGrey,
+                      checkColor: Colors.white,
+                      fillColor: WidgetStateProperty.resolveWith<Color>((
+                        Set<WidgetState> states,
+                      ) {
+                        if (states.contains(WidgetState.selected)) {
+                          return AppColors.textGrey;
+                        }
+                        return Colors.transparent;
+                      }),
+                      side: BorderSide(color: AppColors.textGrey, width: 1.5),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    Text(
+                      'Remember me',
+                      style: AppTextStyles.loginSubtitle.copyWith(
+                        color: AppColors.textGrey,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: _handleForgotPassword,
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'Forgot Password ?',
+                    style: AppTextStyles.linkText.copyWith(
+                      color: AppColors.loginPrimaryBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        // Error Message
+        if (_errorMessage != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.negative.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.negative),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  color: AppColors.negative,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _errorMessage!,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.negative,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+        // Log In Button
+        GradientButton(
+          text: 'Log In',
+          onPressed: _isLoading ? null : _handleEmailLogin,
+          isLoading: _isLoading,
+        ),
+        const SizedBox(height: 16),
+        // Or Separator
+        Row(
+          children: [
+            Expanded(child: Container(height: 1, color: AppColors.dividerGrey)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Or',
+                style: AppTextStyles.loginSubtitle.copyWith(
+                  color: AppColors.textGrey,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+            Expanded(child: Container(height: 1, color: AppColors.dividerGrey)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Social Login Buttons
+        Column(
+          children: [
+            SocialLoginButton(
+              type: SocialLoginType.google,
+              onPressed: _isLoading ? null : _handleGoogleLogin,
+              isLoading: _isLoading,
+            ),
+            const SizedBox(height: 8),
+            SocialLoginButton(
+              type: SocialLoginType.phone,
+              onPressed: _isLoading ? null : _handlePhoneLogin,
+              isLoading: _isLoading,
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildLogoBar(double height, Color color) {
-    return Container(
-      width: 24,
-      height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
+  Widget _buildFooter() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Don\'t have an account?',
+            style: AppTextStyles.loginSubtitle.copyWith(
+              color: AppColors.textGrey,
+            ),
+          ),
+          const SizedBox(width: 6),
+          TextButton(
+            onPressed: () => context.push('/signup'),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text(
+              'Sign Up',
+              style: AppTextStyles.linkText.copyWith(
+                color: AppColors.loginPrimaryBlue,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

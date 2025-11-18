@@ -1,8 +1,16 @@
 # Liberator Stock Trading App
 
-A modern Flutter-based stock trading application designed for the Thai market, featuring an intuitive interface for monitoring market data, executing trades, tracking portfolios, and staying informed about market news.
+A modern Flutter-based stock trading application designed for the Thai market, featuring Firebase authentication, real-time chat support, and an intuitive interface for monitoring market data, executing trades, tracking portfolios, and staying informed about market news.
 
 ## Features
+
+### 🔐 Authentication
+
+- **Email/Password:** Sign up and login with email
+- **Google Sign-In:** One-tap Gmail authentication
+- **Phone Authentication:** SMS verification for phone number login
+- **Password Reset:** Email-based password recovery
+- **Remember Me:** Session persistence option
 
 ### 🏠 Home (Calendar)
 
@@ -18,13 +26,7 @@ A modern Flutter-based stock trading application designed for the Thai market, f
 - Clean stock list view with symbol, full name, short name
 - Real-time price display with percentage change indicators
 - Stock search functionality
-- Simplified stock detail page with:
-  - Large price display and 24h change
-  - Simple price chart visualization
-  - Current holdings information
-  - Expandable "About" section with More/Less toggle
-  - Quick Buy/Sell action buttons
-  - Resource links (website, whitepaper)
+- Simplified stock detail page with price charts, holdings, and order entry
 
 ### 📊 Portfolio
 
@@ -42,6 +44,14 @@ A modern Flutter-based stock trading application designed for the Thai market, f
 - Pull-to-refresh functionality
 - Search capability
 
+### 💬 Support Chat
+
+- Real-time messaging via Firebase Firestore
+- FAQ questions (sends question as message)
+- Recent Orders button
+- Auto-scroll on new messages
+- Admin can reply via Firebase Console or admin panel
+
 ### ⚙️ Settings (You)
 
 - Language switcher (English/Thai)
@@ -49,8 +59,8 @@ A modern Flutter-based stock trading application designed for the Thai market, f
 - Order entry settings
 - E-Service access
 - Register button (opens webview for account registration)
-- Contact us
-- Privacy & Policy
+- Contact Us (navigates to support chat)
+- Privacy & Policy (markdown-based, language-specific)
 - Sign out with confirmation
 
 ### 🔔 Notifications
@@ -63,38 +73,47 @@ A modern Flutter-based stock trading application designed for the Thai market, f
 
 ## Tech Stack
 
-- **Framework:** Flutter 3.x
-- **State Management:** Riverpod 2.6.1
-- **Navigation:** GoRouter 12.1.3
+- **Framework:** Flutter 3.9.2+
+- **State Management:** Riverpod 2.4.0
+- **Navigation:** GoRouter 12.0.0
+- **Backend:**
+  - Firebase Core 4.2.0
+  - Firebase Auth 6.1.1 (Email, Google, Phone)
+  - Cloud Firestore 6.0.3 (Real-time database)
+  - Google Sign-In 6.2.1
 - **Storage:**
-  - SharedPreferences 2.5.3 (preferences)
-  - FlutterSecureStorage 9.2.4 (credentials)
-- **Calendar:** TableCalendar 3.2.0
+  - SharedPreferences 2.2.0 (app preferences)
+  - FlutterSecureStorage 9.0.0 (optional)
+- **Calendar:** TableCalendar 3.0.9
 - **Localization:** flutter_localizations, intl 0.20.2
-- **Webview:** webview_flutter 4.10.0
+- **WebView:** webview_flutter 4.4.2, webview_flutter_android 3.0.0
+- **Media:** image_picker 1.0.0
+- **Markdown:** flutter_markdown 0.6.18
 - **UI/UX:**
-  - FlutterAnimate 4.5.2
-  - CachedNetworkImage 3.4.1
-  - FlutterSvg 2.2.1
+  - FlutterAnimate 4.5.0
+  - CachedNetworkImage 3.3.0
+  - FlutterSvg 2.0.0
 
 ## Project Structure
 
 ```
 lib/
-├── main.dart                 # App entry point
+├── main.dart                 # App entry point with Firebase initialization
 ├── app.dart                  # Main app widget with routing
 ├── core/
 │   ├── constants/           # Colors, text styles, dimensions
 │   ├── theme/              # Dark/light theme configuration
-│   └── utils/              # Formatters, validators
+│   ├── utils/              # Formatters, validators
+│   └── exceptions/         # Custom exceptions (auth_exceptions.dart)
 ├── data/
-│   ├── models/             # User, Stock, Portfolio, etc.
-│   ├── repositories/       # Mock data repository
-│   └── services/           # Storage service
+│   ├── models/             # User, Stock, Portfolio, SupportMessage, etc.
+│   ├── repositories/       # FirebaseAuthRepository, FirestoreUserRepository,
+│   │                        # FirestoreChatRepository, MockDataRepository
+│   └── services/           # StorageService (app preferences only)
 ├── presentation/
-│   ├── screens/            # All app pages
-│   ├── widgets/            # Reusable widgets
-│   └── providers/          # Riverpod state providers
+│   ├── screens/            # All app pages (login, home, support chat, etc.)
+│   ├── widgets/            # Reusable widgets (chat, common, navigation)
+│   └── providers/          # Riverpod state providers (auth, chat, etc.)
 └── localization/           # English & Thai translations
 ```
 
@@ -106,6 +125,38 @@ lib/
 - Dart 3.x
 - Xcode (for iOS)
 - Android Studio (for Android)
+- Firebase project configured
+- Google Sign-In configured (for Gmail login)
+- Phone Authentication enabled (for phone login)
+
+### Firebase Configuration
+
+1. **Create Firebase Project:**
+
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or use existing `lib-light` project
+
+2. **Add Android App:**
+
+   - Add Android app with package name: `com.example.lib_light_ai`
+   - Download `google-services.json` to `android/app/`
+   - Add SHA-1 fingerprint (for Google Sign-In and Phone Auth)
+
+3. **Add iOS App:**
+
+   - Add iOS app with bundle ID: `com.example.libLightAi`
+   - Download `GoogleService-Info.plist` to `ios/Runner/`
+
+4. **Enable Authentication Methods:**
+
+   - Enable Email/Password authentication
+   - Enable Google Sign-In (configure OAuth consent screen)
+   - Enable Phone authentication
+
+5. **Configure Firestore:**
+   - Create Firestore database
+   - Set up security rules (see Firebase Structure section)
+   - Create collections: `users`, `chats`, `chats/{chatId}/messages`
 
 ### Installation Steps
 
@@ -122,7 +173,13 @@ lib/
    flutter pub get
    ```
 
-3. **Run the app**
+3. **Configure Firebase**
+
+   - Place `google-services.json` in `android/app/`
+   - Place `GoogleService-Info.plist` in `ios/Runner/`
+   - Firebase options are auto-generated in `lib/firebase_options.dart`
+
+4. **Run the app**
 
    ```bash
    # For iOS
@@ -131,55 +188,69 @@ lib/
    # For Android
    flutter run -d android
 
-   # For Chrome (web)
-   flutter run -d chrome
+   # For macOS
+   flutter run -d macos
    ```
 
-## Mock Data
+## Firebase Structure
 
-The app currently uses mock data for all features:
+### Collections
 
-- User session: Account `70426672(C)`
-- Login credentials: ID `2525314`, Password `Welcome00`
-- Market data: SET index with realistic values
-- Stock quotes: Thai stock symbols (PTT, KBANK, AOT, CPALL, etc.)
-- Stock list: 10 Thai stocks with real symbols and mock prices
-- Calendar events: October 2025 with dividend dates
-- News articles: Thai financial news with timestamps
-- Notifications: 5 sample notifications (stock changes, market updates, alerts)
+- **`users/{uid}`** - User profiles
 
-## Localization
+  - `accountNumber`: Trading account number
+  - `email`, `displayName`, `photoUrl`, `phoneNumber`
+  - `authProvider`: 'email', 'google', or 'phone'
+  - `createdAt`, `updatedAt`
 
-The app supports two languages:
+- **`chats/{chatId}`** - Chat documents (chatId = userId)
 
-- **English (en)** - Default
-- **Thai (th)** - ภาษาไทย
+  - `userId`: User's Firebase UID
+  - `createdAt`, `updatedAt`
 
-Switch languages in Settings → Language
+- **`chats/{chatId}/messages/{messageId}`** - Chat messages
+  - `content`: Message text
+  - `isFromUser`: Boolean (true for user, false for admin/system)
+  - `timestamp`: Server timestamp
+  - `type`: 'text' or 'faq'
+  - `userId`, `chatId`
 
-## Theme
+### Security Rules
 
-- **Light Theme** (Default): White background with dark text for optimal readability
-- **Dark Theme**: Dark navy background with blue accents
-
-Toggle between themes in Settings → Dark Theme
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null && request.auth.uid == chatId;
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && request.auth.uid == chatId;
+      }
+    }
+  }
+}
+```
 
 ## Authentication
 
-Mock authentication is currently enabled:
+The app uses Firebase Authentication with three methods:
 
-- Login page with username/password form
-- Demo credentials: ID `2525314`, Password `Welcome00`
-- "Remember Me" functionality
-- Stored credentials in secure storage
-- Input validation and error messages
-- Logout clears all stored data
+- **Email/Password:** Standard email registration and login
+- **Google Sign-In:** OAuth-based Gmail authentication
+- **Phone:** SMS verification code authentication
+
+User profiles are automatically created in Firestore on first login. The `accountNumber` is auto-generated from the user's UID.
 
 ## State Management
 
 The app uses Riverpod for state management with the following providers:
 
-- `authProvider` - User authentication state
+- `authProvider` - Firebase authentication state (listens to auth state changes)
+- `chatIdProvider` - Chat ID for current user
+- `chatMessagesProvider` - Real-time chat messages stream
 - `settingsProvider` - Language and theme preferences
 - `marketDataProvider` - SET index and market status
 - `stockProvider` - Selected stock and order book
@@ -188,42 +259,21 @@ The app uses Riverpod for state management with the following providers:
 - `newsProvider` - News articles
 - `notificationProvider` - Notification list and unread count
 
-## Key Features Implementation
+## Localization
 
-### Navigation
+The app supports two languages:
 
-- Bottom navigation bar with 5 tabs
-- GoRouter for declarative routing
-- Tab state preservation
-- Deep linking support
+- **English (en)** - Default
+- **Thai (th)** - ภาษาไทย
 
-### Data Persistence
+Switch languages in Settings → Language. Privacy & Policy pages have separate markdown files for each language.
 
-- Secure credential storage
-- Language preference storage
-- Theme preference storage
-- Last viewed tab storage
+## Theme
 
-### Animations
+- **Light Theme** (Default): White background with dark text
+- **Dark Theme**: Dark navy background with blue accents
 
-- Page transitions: 300ms ease-in-out
-- Button interactions: Scale animation
-- List staggered fade-in
-- Pull-to-refresh indicator
-
-## Testing
-
-Run tests with:
-
-```bash
-flutter test
-```
-
-Run analysis:
-
-```bash
-flutter analyze
-```
+Toggle between themes in Settings → Dark Theme
 
 ## Building for Production
 
@@ -237,9 +287,6 @@ Use the provided build scripts in the `scripts/` folder:
 
 # Build iOS IPA (macOS only)
 ./scripts/build-ios.sh
-
-# Distribute Android via Firebase
-./scripts/distribute-android.sh
 ```
 
 See [scripts/README.md](scripts/README.md) for detailed documentation.
@@ -259,14 +306,27 @@ flutter build appbundle --release
 flutter build ios --release
 ```
 
-## Known Limitations (Phase 1)
+## Testing
 
-- Mock data only (no real API integration)
+Run tests with:
+
+```bash
+flutter test
+```
+
+Run analysis:
+
+```bash
+flutter analyze
+```
+
+## Known Limitations
+
+- Mock data for stocks, portfolio, and news (no real trading API)
 - Portrait orientation only
 - No order execution functionality
-- No real-time data updates
-- No push notifications (in-app notifications only)
 - US Stock and Mutual Fund tabs use same mock data as Thai Stock
+- Phone authentication has daily SMS quota limit (10/day for new projects)
 
 ## License
 
@@ -274,4 +334,4 @@ flutter build ios --release
 
 ---
 
-**Last Updated:** 4 November 2025
+**Last Updated:** 18 Nov 2025

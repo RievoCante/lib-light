@@ -1,11 +1,8 @@
-// Storage service for persisting user data and preferences
-import 'dart:convert';
+// Storage service for persisting app preferences
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart';
 
 class StorageService {
-  static const String _keyUser = 'user';
   static const String _keyLanguage = 'language';
   static const String _keyTheme = 'theme';
   static const String _keyLastTab = 'lastTab';
@@ -28,53 +25,8 @@ class StorageService {
     return StorageService(secureStorage: secureStorage, prefs: prefs);
   }
 
-  // User Storage (Secure - with fallback for macOS)
-  Future<void> saveUser(User user) async {
-    final userJson = jsonEncode(user.toJson());
-    try {
-      await _secureStorage.write(key: _keyUser, value: userJson);
-    } catch (e) {
-      // Fallback to SharedPreferences if secure storage fails (e.g., macOS entitlements)
-      await _prefs.setString(_keyUser, userJson);
-    }
-  }
-
-  Future<User?> getUser() async {
-    try {
-      final userJson = await _secureStorage.read(key: _keyUser);
-      if (userJson == null) {
-        // Try fallback to SharedPreferences
-        final fallbackJson = _prefs.getString(_keyUser);
-        if (fallbackJson == null) return null;
-
-        final userMap = jsonDecode(fallbackJson) as Map<String, dynamic>;
-        return User.fromJson(userMap);
-      }
-
-      final userMap = jsonDecode(userJson) as Map<String, dynamic>;
-      return User.fromJson(userMap);
-    } catch (e) {
-      // Fallback to SharedPreferences
-      try {
-        final fallbackJson = _prefs.getString(_keyUser);
-        if (fallbackJson == null) return null;
-
-        final userMap = jsonDecode(fallbackJson) as Map<String, dynamic>;
-        return User.fromJson(userMap);
-      } catch (_) {
-        return null;
-      }
-    }
-  }
-
-  Future<void> clearUser() async {
-    try {
-      await _secureStorage.delete(key: _keyUser);
-    } catch (e) {
-      // Fallback to SharedPreferences
-      await _prefs.remove(_keyUser);
-    }
-  }
+  // Get SharedPreferences instance (for direct access if needed)
+  SharedPreferences getSharedPreferences() => _prefs;
 
   // Language Preference
   Future<void> saveLanguage(String languageCode) async {

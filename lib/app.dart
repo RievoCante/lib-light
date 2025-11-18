@@ -8,6 +8,7 @@ import 'localization/app_localizations.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/screens/login/login_page.dart';
+import 'presentation/screens/login/signup_page.dart';
 import 'presentation/screens/home/home_page.dart';
 import 'presentation/screens/buy_sell/buy_sell_page.dart';
 import 'presentation/screens/portfolio/portfolio_page.dart';
@@ -37,7 +38,7 @@ class _LiberatorAppState extends ConsumerState<LiberatorApp> {
       initialLocation: '/login',
       redirect: (context, state) {
         final authState = ref.read(authProvider);
-        final isLoggedIn = authState.value?.isLoggedIn ?? false;
+        final isLoggedIn = authState.value != null;
 
         if (!isLoggedIn && state.matchedLocation != '/login') {
           return '/login';
@@ -51,6 +52,10 @@ class _LiberatorAppState extends ConsumerState<LiberatorApp> {
       },
       routes: [
         GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+        GoRoute(
+          path: '/signup',
+          builder: (context, state) => const SignupPage(),
+        ),
         GoRoute(
           path: '/support-chat',
           builder: (context, state) => const SupportChatPage(),
