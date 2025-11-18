@@ -1,4 +1,4 @@
-// Settings (You) page with light theme
+// You page with settings
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,12 +6,13 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../localization/app_localizations.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/settings_provider.dart';
+import '../../providers/you_provider.dart';
 import '../webview/webview_page.dart';
+import 'account_page.dart';
 import 'privacy_policy_page.dart';
 
-class SettingsPage extends ConsumerWidget {
-  const SettingsPage({super.key});
+class YouPage extends ConsumerWidget {
+  const YouPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -81,6 +82,23 @@ class SettingsPage extends ConsumerWidget {
               },
               activeThumbColor: AppColors.primaryBlue,
             ),
+          ),
+
+          // Account
+          _SettingTile(
+            icon: Icons.account_circle,
+            title: 'Account',
+            trailing: Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountPage()),
+              );
+            },
           ),
 
           // Order Entry

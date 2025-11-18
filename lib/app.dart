@@ -6,14 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
 import 'localization/app_localizations.dart';
 import 'presentation/providers/auth_provider.dart';
-import 'presentation/providers/settings_provider.dart';
+import 'presentation/providers/you_provider.dart';
 import 'presentation/screens/login/login_page.dart';
 import 'presentation/screens/login/signup_page.dart';
 import 'presentation/screens/home/home_page.dart';
 import 'presentation/screens/buy_sell/buy_sell_page.dart';
 import 'presentation/screens/portfolio/portfolio_page.dart';
 import 'presentation/screens/content/content_page.dart';
-import 'presentation/screens/settings/settings_page.dart';
+import 'presentation/screens/you/you_page.dart';
 import 'presentation/screens/support/support_chat_page.dart';
 import 'presentation/widgets/navigation/bottom_nav_bar.dart';
 
@@ -86,7 +86,7 @@ class _LiberatorAppState extends ConsumerState<LiberatorApp> {
             ),
             GoRoute(
               path: '/settings',
-              builder: (context, state) => const SettingsPage(),
+              builder: (context, state) => const YouPage(),
             ),
           ],
         ),

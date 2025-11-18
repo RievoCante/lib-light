@@ -6,7 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../localization/app_localizations.dart';
 import '../../providers/news_provider.dart';
-import '../../providers/settings_provider.dart';
+import '../../providers/you_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/common/market_header.dart';
 import '../../widgets/common/notification_bell.dart';
